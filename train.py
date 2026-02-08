@@ -17,20 +17,20 @@ from vqamed import (
 from vqamed.training import train_epoch, validate_epoch, EarlyStopping
 from vqamed.visualization import plot_losses
 
-
+root_dataset = "data/ImageClef-2019-VQA-Med"
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Train VQA Medical model")
     parser.add_argument(
         "--train-path",
         type=str,
-        default="data/Training",
+        default=f"{root_dataset}/Training",
         help="Path to training data"
     )
     parser.add_argument(
         "--val-path",
         type=str,
-        default="data/Validation",
+        default=f"{root_dataset}/Validation",
         help="Path to validation data"
     )
     parser.add_argument(
