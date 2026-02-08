@@ -1,0 +1,21 @@
+[project]
+name = "vqa-med"
+version = "0.1.0"
+description = "Visual Question Answering for Medical Images"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "jupyter>=1.1.1",
+    "matplotlib>=3.9.0",
+    "pillow>=10.0.0",
+    "torch>=2.10.0",
+    "torchvision>=0.25.0",
+    "tqdm>=4.66.5",
+    "transformers>=5.1.0",
+]
+
+[project.scripts]
+train-vqa = "train:main"
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cu130"
