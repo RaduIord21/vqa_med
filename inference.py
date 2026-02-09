@@ -5,8 +5,10 @@ import argparse
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import json
+import textwrap
 
 import torch
+import matplotlib.pyplot as plt
 from PIL import Image
 from torchvision import transforms
 from transformers import AutoTokenizer
@@ -90,6 +92,12 @@ Examples:
         type=int,
         default=4,
         help="Number of samples to show in batch mode (use -1 for all)"
+    )
+    parser.add_argument(
+        "--save-visual",
+        type=str,
+        default=None,
+        help="Save visual grid of results as JPG (e.g., results_densenet.jpg)"
     )
     return parser.parse_args()
 
@@ -241,6 +249,85 @@ def print_result(image_path: str, question: str, answer: str) -> None:
     print(f"❓ Question: {question}")
     print(f"💡 Answer:   {answer}")
     print("-" * 60)
+
+
+def save_visual_grid(
+    results: List[Dict[str, str]],
+    output_path: str,
+    model_name: str = "Model",
+    num_samples: int = 4
+) -> None:
+    """
+    Save a visual grid of images with questions and answers.
+    
+    Args:
+        results: List of dicts with 'image_path', 'question', 'answer' keys.
+        output_path: Path to save the JPG file.
+        model_name: Name of the model for the title.
+        num_samples: Number of samples to display (default 4 for 2x2 grid).
+    """
+    # Take only the first num_samples
+    samples = results[:num_samples]
+    n = len(samples)
+    
+    if n == 0:
+        print("No results to visualize!")
+        return
+    
+    # Calculate grid dimensions
+    cols = 2
+    rows = (n + 1) // 2
+    
+    fig, axes = plt.subplots(rows, cols, figsize=(14, 7 * rows))
+    fig.suptitle(f'VQA Medical Results - {model_name}', fontsize=16, fontweight='bold')
+    
+    # Flatten axes for easy iteration
+    if rows == 1 and cols == 1:
+        axes = [[axes]]
+    elif rows == 1:
+        axes = [axes]
+    elif cols == 1:
+        axes = [[ax] for ax in axes]
+    
+    for idx, sample in enumerate(samples):
+        row = idx // cols
+        col = idx % cols
+        ax = axes[row][col]
+        
+        # Load and display image
+        try:
+            img = Image.open(sample['image_path']).convert('RGB')
+            ax.imshow(img)
+        except Exception as e:
+            ax.text(0.5, 0.5, f"Error loading image:\n{e}", 
+                   ha='center', va='center', transform=ax.transAxes)
+        
+        ax.axis('off')
+        
+        # Wrap text for better display
+        question = sample['question']
+        answer = sample['answer']
+        image_name = Path(sample['image_path']).name
+        
+        # Wrap long text
+        wrapped_q = textwrap.fill(f"Q: {question}", width=50)
+        wrapped_a = textwrap.fill(f"A: {answer}", width=50)
+        
+        title = f"{image_name}\n{wrapped_q}\n{wrapped_a}"
+        ax.set_title(title, fontsize=10, pad=10, loc='center')
+    
+    # Hide empty subplots
+    for idx in range(n, rows * cols):
+        row = idx // cols
+        col = idx % cols
+        axes[row][col].axis('off')
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches='tight', 
+                facecolor='white', edgecolor='none')
+    plt.close()
+    
+    print(f"\nVisual results saved to: {output_path}")
 
 
 def load_questions_file(filepath: str, images_dir: str) -> List[Dict[str, str]]:
@@ -415,6 +502,15 @@ def main():
         with open(args.output, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
         print(f"\nResults saved to: {args.output}")
+    
+    # Save visual grid if requested
+    if args.save_visual and results:
+        save_visual_grid(
+            results=results,
+            output_path=args.save_visual,
+            model_name=args.visual_encoder.upper(),
+            num_samples=args.num_samples if args.num_samples > 0 else 4
+        )
 
 
 if __name__ == "__main__":
