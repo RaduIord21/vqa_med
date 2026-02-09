@@ -88,7 +88,7 @@ Examples:
     parser.add_argument(
         "--num-samples",
         type=int,
-        default=10,
+        default=4,
         help="Number of samples to show in batch mode (use -1 for all)"
     )
     return parser.parse_args()
