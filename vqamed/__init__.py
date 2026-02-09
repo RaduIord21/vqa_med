@@ -7,6 +7,7 @@ from .fusion import CrossAttentionFusion
 from .decoder import AnswerDecoder
 from .model import VQAModel
 from .training import train_epoch, validate_epoch, EarlyStopping
+from .metrics import compute_all_metrics, exact_match, average_f1, bleu_score, print_metrics
 
 __all__ = [
     "Config",
@@ -21,4 +22,9 @@ __all__ = [
     "train_epoch",
     "validate_epoch",
     "EarlyStopping",
+    "compute_all_metrics",
+    "exact_match",
+    "average_f1",
+    "bleu_score",
+    "print_metrics",
 ]

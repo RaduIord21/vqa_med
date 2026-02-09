@@ -2,6 +2,7 @@
 """Main training script for VQA Medical."""
 
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -175,8 +176,23 @@ def main():
             print("🛑 Early stopping triggered.")
             break
     
-    # Plot losses
-    plot_losses(train_losses, val_losses, "loss_plot.png")
+    # Save losses to JSON (same directory as checkpoint)
+    losses_path = Path(config.save_path).with_suffix('.json')
+    losses_data = {
+        'train_losses': train_losses,
+        'val_losses': val_losses,
+        'visual_encoder': config.visual_encoder,
+        'epochs_trained': len(train_losses)
+    }
+    with open(losses_path, 'w') as f:
+        json.dump(losses_data, f, indent=2)
+    print(f"Losses saved to {losses_path}")
+    
+    # Plot losses (save next to checkpoint)
+    plot_path = Path(config.save_path).with_name(
+        Path(config.save_path).stem + '_loss_plot.png'
+    )
+    plot_losses(train_losses, val_losses, str(plot_path))
     
     print(f"\nTraining complete! Best model saved to: {config.save_path}")
 
