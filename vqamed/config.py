@@ -21,6 +21,7 @@ class Config:
     decoder_layers: int = 4
     max_len: int = 32
     text_model_name: str = "bert-base-uncased"
+    visual_encoder: str = "densenet"  # "densenet" or "vit"
     
     # Training
     batch_size: int = 32

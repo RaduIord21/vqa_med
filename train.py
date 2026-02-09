@@ -63,6 +63,13 @@ def parse_args() -> argparse.Namespace:
         default="checkpoints/best_model.pt",
         help="Model save path"
     )
+    parser.add_argument(
+        "--visual-encoder",
+        type=str,
+        choices=["densenet", "vit"],
+        default="densenet",
+        help="Visual encoder type: 'densenet' or 'vit'"
+    )
     return parser.parse_args()
 
 
@@ -79,6 +86,7 @@ def main():
         learning_rate=args.lr,
         patience=args.patience,
         save_path=args.save_path,
+        visual_encoder=args.visual_encoder,
     )
     
     device = torch.device(config.device)

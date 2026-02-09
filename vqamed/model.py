@@ -3,7 +3,7 @@
 import torch
 import torch.nn as nn
 
-from .encoders import VisualEncoder, TextEncoder
+from .encoders import VisualEncoder, ViTEncoder, TextEncoder
 from .fusion import CrossAttentionFusion
 from .decoder import AnswerDecoder
 
@@ -78,7 +78,12 @@ class VQAModel(nn.Module):
         Returns:
             Initialized VQAModel.
         """
-        visual_encoder = VisualEncoder(embed_dim=config.embed_dim)
+        # Select visual encoder based on config
+        if config.visual_encoder == "vit":
+            visual_encoder = ViTEncoder(embed_dim=config.embed_dim)
+        else:
+            visual_encoder = VisualEncoder(embed_dim=config.embed_dim)
+        
         text_encoder = TextEncoder(
             model_name=config.text_model_name,
             embed_dim=config.embed_dim

@@ -2,7 +2,7 @@
 
 from .config import Config
 from .dataset import VQADataset, parse_qa_set
-from .encoders import VisualEncoder, TextEncoder
+from .encoders import VisualEncoder, ViTEncoder, TextEncoder
 from .fusion import CrossAttentionFusion
 from .decoder import AnswerDecoder
 from .model import VQAModel
@@ -13,6 +13,7 @@ __all__ = [
     "VQADataset",
     "parse_qa_set",
     "VisualEncoder",
+    "ViTEncoder",
     "TextEncoder",
     "CrossAttentionFusion",
     "AnswerDecoder",

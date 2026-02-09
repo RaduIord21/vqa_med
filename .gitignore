@@ -9,3 +9,5 @@ kaggle.json
 # Virtual environments
 .venv
 data
+*.ipynb
+*.pdf

@@ -43,6 +43,66 @@ class VisualEncoder(nn.Module):
         return x
 
 
+class ViTEncoder(nn.Module):
+    """Visual encoder using Vision Transformer (ViT) backbone."""
+    
+    def __init__(self, embed_dim: int = 512, return_patches: bool = False):
+        """
+        Initialize Visual Encoder with ViT.
+        
+        Args:
+            embed_dim: Output embedding dimension.
+            return_patches: If True, return all patch embeddings [B, N, D].
+                          If False, return only CLS token [B, D].
+        """
+        super().__init__()
+        self.return_patches = return_patches
+        
+        # Load pretrained ViT-B/16
+        self.vit = models.vit_b_16(weights=models.ViT_B_16_Weights.DEFAULT)
+        vit_hidden_dim = self.vit.hidden_dim  # 768
+        
+        # Remove the classification head
+        self.vit.heads = nn.Identity()
+        
+        self.projection = nn.Sequential(
+            nn.Linear(vit_hidden_dim, embed_dim),
+            nn.LayerNorm(embed_dim),
+            nn.GELU(),
+            nn.Linear(embed_dim, embed_dim)
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
+        
+        Args:
+            x: Input images [B, C, H, W]. Expected size 224x224.
+            
+        Returns:
+            If return_patches=True: [B, N+1, embed_dim] (CLS + patches)
+            If return_patches=False: [B, embed_dim] (CLS only)
+        """
+        # Get patch embeddings from ViT encoder
+        x = self.vit._process_input(x)
+        B = x.shape[0]
+        
+        # Add CLS token
+        cls_token = self.vit.class_token.expand(B, -1, -1)
+        x = torch.cat([cls_token, x], dim=1)
+        
+        # Add positional embedding and pass through encoder
+        x = x + self.vit.encoder.pos_embedding
+        x = self.vit.encoder.ln(self.vit.encoder.layers(x))
+        
+        if self.return_patches:
+            # Return all tokens (CLS + patches): [B, N+1, D]
+            return self.projection(x)
+        else:
+            # Return only CLS token: [B, D]
+            return self.projection(x[:, 0])
+
+
 class TextEncoder(nn.Module):
     """Text encoder using BERT backbone."""
     
